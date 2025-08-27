@@ -41,6 +41,7 @@ body {
 .game-container {
     display: flex;
     justify-content: center;
+    align-items: flex-start;
     gap: 30px;
     margin-top: 20px;
 }
@@ -60,7 +61,7 @@ body {
 }
 
 #pieces-container {
-    width: 250px;
+    width: 380px;
     text-align: left;
 }
 
@@ -70,9 +71,11 @@ body {
     border: 1px solid #ccc;
     padding: 10px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
     gap: 10px;
-    align-items: center;
 }
 
 .domino {

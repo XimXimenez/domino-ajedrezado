@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let dominoMaxNumber = 6;
     let draggingPiece = null;
     let isVertical = false;
+    let rotation = 0;
     let originPiece = null; // To remember the piece from the list
     let boardState = []; // 2D array to hold board data
 
@@ -137,6 +138,7 @@ function handlePiecePickup(e) {
 
         // Clone the piece to create the "in-hand" piece that follows the cursor
         draggingPiece = originPiece.cloneNode(true);
+        rotation = parseInt(originPiece.dataset.rotation || '0', 10);
         isVertical = draggingPiece.classList.contains('vertical');
 
         draggingPiece.classList.add('dragging');
@@ -197,11 +199,54 @@ function handleBoardPlacementClick(e) {
         draggingPiece.style.top = `${y - offsetY}px`;
     }
 
+    function updateDraggingPieceVisuals() {
+        if (!draggingPiece) return;
+
+        // Use originPiece for the canonical values
+        const originalValues = originPiece.dataset.value.split('-').map(Number);
+        const halves = draggingPiece.querySelectorAll('.domino-half');
+        let v1, v2;
+
+        switch (rotation) {
+            case 0: // horizontal, normal
+                v1 = originalValues[0];
+                v2 = originalValues[1];
+                draggingPiece.classList.remove('vertical');
+                isVertical = false;
+                break;
+            case 1: // vertical, normal
+                v1 = originalValues[0];
+                v2 = originalValues[1];
+                draggingPiece.classList.add('vertical');
+                isVertical = true;
+                break;
+            case 2: // horizontal, swapped
+                v1 = originalValues[1];
+                v2 = originalValues[0];
+                draggingPiece.classList.remove('vertical');
+                isVertical = false;
+                break;
+            case 3: // vertical, swapped
+                v1 = originalValues[1];
+                v2 = originalValues[0];
+                draggingPiece.classList.add('vertical');
+                isVertical = true;
+                break;
+        }
+
+        halves[0].textContent = v1;
+        halves[1].textContent = v2;
+        // Update the dragging piece's value to reflect the current rotation for placement logic
+        draggingPiece.dataset.value = `${v1}-${v2}`;
+    }
+
     function handleRotation(e) {
         if (draggingPiece) {
             e.preventDefault(); // Prevent context menu
-            isVertical = !isVertical;
-            draggingPiece.classList.toggle('vertical');
+            rotation = (rotation + 1) % 4;
+
+            updateDraggingPieceVisuals();
+
             // Recenter after rotation
             movePiece(e.pageX, e.pageY);
         }
@@ -279,8 +324,6 @@ function handleBoardPlacementClick(e) {
 
         if (canPlace) {
             placePieceOnBoard(values, row, col, isVertical);
-            updatePieceCount();
-
             // Clean up dragging state
             document.removeEventListener('mousemove', handleMouseMove);
             document.removeEventListener('mouseup', handleMouseUp);
@@ -290,6 +333,8 @@ function handleBoardPlacementClick(e) {
             originPiece.remove(); // Remove original from list or board
             draggingPiece = null;
             originPiece = null;
+            updatePieceCount();
+
         } else {
          console.log("Invalid placement");
         }
@@ -360,7 +405,7 @@ function handleBoardPlacementClick(e) {
     }
 
     function placePieceOnBoard(values, row, col, isVertical) {
-        const pieceId = `${values[0]}-${values[1]}`;
+        const pieceId = originPiece.dataset.value; // Use canonical value for ID
         // Update board state
         boardState[row][col] = { value: values[0], pieceId: pieceId };
         if (isVertical) {
@@ -371,6 +416,8 @@ function handleBoardPlacementClick(e) {
 
         // Create visual piece on board
         const dominoOnBoard = createDominoElement(values[0], values[1]);
+        dominoOnBoard.dataset.value = originPiece.dataset.value;
+        dominoOnBoard.dataset.rotation = rotation;
         dominoOnBoard.style.position = 'absolute';
         dominoOnBoard.style.top = `${row * 40}px`;
         dominoOnBoard.style.left = `${col * 40}px`;
@@ -382,7 +429,6 @@ function handleBoardPlacementClick(e) {
         }
 
         boardContainer.appendChild(dominoOnBoard);
-        updatePieceCount();
     }
 
     function updatePieceCount() {
@@ -457,6 +503,7 @@ function handleBoardPlacementClick(e) {
                 pieceInList.remove();
             }
         });
+        updatePieceCount();
     }
 
     // --- Event Listeners ---
@@ -469,7 +516,18 @@ function handleBoardPlacementClick(e) {
 
     // New event listeners for click-based interaction
     dominoList.addEventListener('click', handlePiecePickup);
-    boardContainer.addEventListener('click', handleBoardPlacementClick);
+     boardContainer.addEventListener('click', (e) => {
+        if (draggingPiece) {
+            // If we are dragging a piece, a click on the board means "place it".
+            handleBoardPlacementClick(e);
+        } else {
+            // If we are NOT dragging a piece, a click on a piece on the board means "pick it up".
+            const targetDomino = e.target.closest('.domino');
+            if (targetDomino) {
+                handlePiecePickup(e);
+            }
+        }
+    });
 
     rotateBtn.addEventListener('click', (e) => {
         if(draggingPiece) {
