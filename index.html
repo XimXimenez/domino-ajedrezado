@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dominó Ajedrezado</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+        <h1>Dominó Ajedrezado</h1>
+        <p>¿Cuántas piezas de dominó podés poner en un tablero?</p>
+        <div class="options">
+            <label for="board-size">Tamaño del tablero:</label>
+            <select id="board-size">
+                <!-- Options will be populated by JS -->
+            </select>
+            <label for="domino-set">Dominó que va del 0 al:</label>
+            <select id="domino-set">
+                <!-- Options will be populated by JS -->
+            </select>
+        </div>
+        <button id="play-btn">Jugar</button>
+    </div>
+
+    <!-- Game Screen (initially hidden) -->
+    <div id="game-screen" style="display:none;">
+        <div class="game-header">
+            <h1>Dominó Ajedrezado</h1>
+            <p id="game-instructions"></p>
+        </div>
+        <div class="game-container">
+            <div id="board-container">
+                <!-- Game board will be generated here -->
+            </div>
+            <div id="pieces-container">
+                <h2>Piezas</h2>
+                <div id="domino-list">
+                    <!-- Domino pieces will be listed here -->
+                </div>
+            </div>
+        </div>
+        <div class="game-controls">
+            <p>Piezas colocadas: <span id="piece-count">0</span></p>
+            <button id="rotate-btn">Rotar</button>
+            <button id="finish-btn">Terminar</button>
+            <button id="saved-boards-btn">Tableros guardados</button>
+            <button id="new-game-btn">Empezar de nuevo</button>
+        </div>
+    </div>
+
+    <!-- Finish Modal -->
+    <div id="finish-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>¡Juego Terminado!</h2>
+            <p id="finish-summary"></p>
+            <button id="save-btn">Guardar</button>
+            <button id="continue-btn">Seguir</button>
+        </div>
+    </div>
+
+    <!-- Saved Boards Modal -->
+    <div id="saved-boards-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Tableros Guardados</h2>
+            <ul id="saved-games-list">
+                <!-- Saved games will be listed here -->
+            </ul>
+            <button id="continue-playing-btn">Seguir</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
