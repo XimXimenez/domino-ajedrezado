@@ -123,29 +123,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Piece Interaction Logic ---
-    function handlePieceMouseDown(e) {
-        // Don't start a drag if one is already in progress
-        if (draggingPiece) return;
+// New handlers for click-based interaction to be implemented in later steps
+function handlePiecePickup(e) {
+    // If a piece is already being dragged, do nothing.
+    if (draggingPiece) return;
 
-        const targetDomino = e.target.closest('.domino');
-        if (targetDomino) {
-            // Pick up from list or board
-            originPiece = targetDomino;
+    const targetDomino = e.target.closest('.domino');
+    if (targetDomino) {
+        // Stop the click from bubbling up to piecesContainer, which would cancel the pickup.
+        e.stopPropagation();
 
-            draggingPiece = originPiece.cloneNode(true);
-            isVertical = draggingPiece.classList.contains('vertical');
+        originPiece = targetDomino;
 
-            draggingPiece.classList.add('dragging');
-            document.body.appendChild(draggingPiece);
+        // Clone the piece to create the "in-hand" piece that follows the cursor
+        draggingPiece = originPiece.cloneNode(true);
+        isVertical = draggingPiece.classList.contains('vertical');
 
-            movePiece(e.pageX, e.pageY);
+        draggingPiece.classList.add('dragging');
+        document.body.appendChild(draggingPiece);
 
-            originPiece.style.visibility = 'hidden';
+        // Immediately move the piece to the cursor's position
+        movePiece(e.pageX, e.pageY);
 
-            document.addEventListener('mousemove', handleMouseMove);
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('contextmenu', handleRotation);
+        // Hide the original piece from the list so it can't be picked up again
+        originPiece.style.visibility = 'hidden';
+
+        // Add listeners to track mouse movement for the piece and to handle rotation
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('contextmenu', handleRotation);
+    }
+}
+
+function handleBoardPlacementClick(e) {
+    // If no piece is being dragged, there's nothing to place.
+    if (!draggingPiece) return;
+
+    // We calculate the target cell from the click's coordinates relative to the board.
+    // This makes placement work even if the cursor is over an existing piece.
+    const boardRect = boardContainer.getBoundingClientRect();
+    const x = e.clientX - boardRect.left;
+    const y = e.clientY - boardRect.top;
+
+    // The cell size is hardcoded to 40px in generateBoard and CSS.
+    const col = Math.floor(x / 40);
+    const row = Math.floor(y / 40);
+
+    // Proceed only if the calculated cell is within the board's grid.
+    if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
+        const cellSelector = `.board-cell[data-row='${row}'][data-col='${col}']`;
+        const boardCell = boardContainer.querySelector(cellSelector);
+
+        if (boardCell) {
+            // The handleBoardClick function already contains all the complex logic
+            // for validating the placement, updating the board state, and cleaning up.
+            handleBoardClick(boardCell);
         }
+    }
+    // If the click is outside the board grid, we do nothing, leaving the piece "in-hand".
     }
 
     function handleMouseMove(e) {
@@ -202,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleBoardClick(cell) {
-        if (!draggingPiece) return;
+    if (!draggingPiece) return;
 
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
@@ -257,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             draggingPiece = null;
             originPiece = null;
         } else {
-             console.log("Invalid placement");
+         console.log("Invalid placement");
         }
     }
 
@@ -274,20 +308,53 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 3. Adjacency check
+        // If it's the first piece (from the list), placement is always valid on an empty spot.
+        const placedPiecesCount = document.querySelectorAll('#board-container .domino').length;
+        if (placedPiecesCount === 0) {
+             // This check is a bit redundant if the board is empty, but good for clarity
+            if (originPiece && originPiece.parentElement.id === 'domino-list') {
+                return true;
+            }
+        }
+
         const checkNeighbors = (val, r, c) => {
             const neighbors = [[r-1, c], [r+1, c], [r, c-1], [r, c+1]];
+            let hasNeighbor = false;
+            let goodMatch = true;
             for (const [nr, nc] of neighbors) {
                 // Ignore the other half of the same piece
                 if ((nr === r1 && nc === c1) || (nr === r2 && nc === c2)) continue;
 
                 if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize && boardState[nr][nc] !== null) {
-                    if (boardState[nr][nc].value !== val) {
-                        return false; // Mismatch
-                    }
+                   hasNeighbor = true;
+                   if (boardState[nr][nc].value !== val) {
+                       goodMatch = false;
+                   }
                 }
             }
-            return true;
+             // If there are neighbors, they must match. If no neighbors, it's a valid part of the placement.
+            return !hasNeighbor || goodMatch;
         };
+
+        const isAdjacentToExistingPiece = () => {
+            const allNeighbors = [
+                [r1 - 1, c1], [r1 + 1, c1], [r1, c1 - 1], [r1, c1 + 1],
+                [r2 - 1, c2], [r2 + 1, c2], [r2, c2 - 1], [r2, c2 + 1]
+            ];
+            for (const [nr, nc] of allNeighbors) {
+                if ((nr === r1 && nc === c1) || (nr === r2 && nc === c2)) continue;
+                if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize && boardState[nr][nc] !== null) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        // After the first piece, every new piece must be adjacent to an existing one.
+        if (placedPiecesCount > 0 && !isAdjacentToExistingPiece()) {
+            return false;
+        }
+
 
         return checkNeighbors(val1, r1, c1) && checkNeighbors(val2, r2, c2);
     }
@@ -400,8 +467,9 @@ document.addEventListener('DOMContentLoaded', () => {
         welcomeScreen.style.display = 'block';
     });
 
-    // Use event delegation on document for mousedown to handle all pieces
-    document.addEventListener('mousedown', handlePieceMouseDown);
+    // New event listeners for click-based interaction
+    dominoList.addEventListener('click', handlePiecePickup);
+    boardContainer.addEventListener('click', handleBoardPlacementClick);
 
     rotateBtn.addEventListener('click', (e) => {
         if(draggingPiece) {
