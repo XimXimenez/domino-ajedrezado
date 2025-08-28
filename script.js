@@ -163,8 +163,8 @@ function handleBoardPlacementClick(e) {
     // We calculate the target cell from the click's coordinates relative to the board.
     // This makes placement work even if the cursor is over an existing piece.
     const boardRect = boardContainer.getBoundingClientRect();
-    const x = e.clientX - boardRect.left;
-    const y = e.clientY - boardRect.top;
+    const x = e.clientX - boardRect.left - 20;
+    const y = e.clientY - boardRect.top - 20;
 
     // The cell size is hardcoded to 40px in generateBoard and CSS.
     const col = Math.floor(x / 40);
@@ -445,7 +445,8 @@ function handleBoardPlacementClick(e) {
                 value: p.dataset.value,
                 row: parseInt(p.dataset.row),
                 col: parseInt(p.dataset.col),
-                isVertical: p.classList.contains('vertical')
+                isVertical: p.classList.contains('vertical'),
+                rotation: p.dataset.rotation || '0'
             });
         });
 
@@ -453,6 +454,7 @@ function handleBoardPlacementClick(e) {
             boardSize: boardSize,
             dominoMaxNumber: dominoMaxNumber,
             pieces: piecesOnBoard,
+            dominoListHTML: dominoList.innerHTML,
             timestamp: new Date().getTime()
         };
 
@@ -474,35 +476,79 @@ function handleBoardPlacementClick(e) {
 
         savedGames.forEach((game, index) => {
             const li = document.createElement('li');
+
+            const textSpan = document.createElement('span');
             const date = new Date(game.timestamp).toLocaleString('es-ES');
-            li.textContent = `Partida del ${date} - ${game.pieces.length} piezas en tablero ${game.boardSize}x${game.boardSize}`;
-            li.dataset.gameIndex = index;
+            textSpan.textContent = `Partida del ${date} - ${game.pieces.length} piezas en tablero ${game.boardSize}x${game.boardSize}`;
+
+            const loadButton = document.createElement('button');
+            loadButton.textContent = 'Cargar';
+            loadButton.dataset.gameIndex = index;
+            loadButton.classList.add('load-game-btn');
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Borrar';
+            deleteButton.dataset.gameIndex = index;
+            deleteButton.classList.add('delete-game-btn');
+
+            li.appendChild(textSpan);
+            li.appendChild(loadButton);
+            li.appendChild(deleteButton);
             savedGamesList.appendChild(li);
         });
     }
 
+    function placeSavedPieceOnBoard(pieceData) {
+        const { value, row, col, isVertical, rotation } = pieceData;
+        const canonicalValues = value.split('-').map(Number);
+        let displayedValues = [...canonicalValues];
+
+        if (rotation === '2' || rotation === '3') {
+            displayedValues = [canonicalValues[1], canonicalValues[0]];
+        }
+
+        boardState[row][col] = { value: displayedValues[0], pieceId: value };
+        if (isVertical) {
+            boardState[row + 1][col] = { value: displayedValues[1], pieceId: value };
+        } else {
+            boardState[row][col + 1] = { value: displayedValues[1], pieceId: value };
+        }
+
+        const dominoOnBoard = createDominoElement(displayedValues[0], displayedValues[1]);
+        dominoOnBoard.dataset.value = value;
+        dominoOnBoard.dataset.rotation = rotation;
+        dominoOnBoard.style.position = 'absolute';
+        dominoOnBoard.style.top = `${row * 40}px`;
+        dominoOnBoard.style.left = `${col * 40}px`;
+        dominoOnBoard.dataset.row = row;
+        dominoOnBoard.dataset.col = col;
+
+        if (isVertical) {
+            dominoOnBoard.classList.add('vertical');
+        }
+        boardContainer.appendChild(dominoOnBoard);
+    }
+
     function loadGame(savedGame) {
-        // Set game params from saved state
         boardSize = savedGame.boardSize;
         dominoMaxNumber = savedGame.dominoMaxNumber;
-
-        // Update selectors on welcome screen to match loaded game
         boardSizeSelect.value = boardSize;
         dominoSetSelect.value = dominoMaxNumber;
 
-        startGame(); // Re-initializes board, state, and domino list
+        boardState = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+        gameInstructions.textContent = `¿Cuántas piezas del dominó que va del 0 al ${dominoMaxNumber} podés poner en este tablero? Elegí una pieza y ponela en el tablero con un click. Las piezas se pueden rotar con el botón derecho.`;
 
-        // Place pieces from the saved game
+        welcomeScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+
+        generateBoard(boardSize);
+
+        dominoList.innerHTML = savedGame.dominoListHTML;
+
         savedGame.pieces.forEach(piece => {
-            const values = piece.value.split('-').map(Number);
-            placePieceOnBoard(values, piece.row, piece.col, piece.isVertical);
-
-            // Remove the corresponding piece from the side list
-            const pieceInList = dominoList.querySelector(`.domino[data-value="${piece.value}"]`);
-            if (pieceInList) {
-                pieceInList.remove();
-            }
+            placeSavedPieceOnBoard(piece);
         });
+
         updatePieceCount();
     }
 
@@ -570,13 +616,27 @@ function handleBoardPlacementClick(e) {
     });
 
     savedGamesList.addEventListener('click', (e) => {
-        if (e.target.tagName === 'LI' && e.target.dataset.gameIndex) {
-            const savedGames = JSON.parse(localStorage.getItem('dominoSavedGames'));
-            const gameToLoad = savedGames[e.target.dataset.gameIndex];
+        const target = e.target;
+        const gameIndex = target.dataset.gameIndex;
+
+        if (gameIndex === undefined) return; // Click was not on a button with an index
+
+        let savedGames = JSON.parse(localStorage.getItem('dominoSavedGames'));
+
+        // Handle Load Button Click
+        if (target.classList.contains('load-game-btn')) {
+            const gameToLoad = savedGames[gameIndex];
             if (gameToLoad) {
                 loadGame(gameToLoad);
                 savedBoardsModal.style.display = 'none';
             }
+        }
+
+        // Handle Delete Button Click
+        if (target.classList.contains('delete-game-btn')) {
+            savedGames.splice(gameIndex, 1);
+            localStorage.setItem('dominoSavedGames', JSON.stringify(savedGames));
+            loadAndDisplaySavedGames();
         }
     });
 

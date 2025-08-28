@@ -153,9 +153,31 @@ body {
 #saved-games-list li {
     padding: 10px;
     border-bottom: 1px solid #eee;
-    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 #saved-games-list li:hover {
+    background-color: #f9f9f9; /* Lighter hover since the whole row isn't clickable */
+}
+
+#saved-games-list li span {
+    flex-grow: 1;
+    margin-right: 15px;
+}
+
+#saved-games-list li button {
+    margin-left: 5px;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     background-color: #f0f0f0;
+    color: #333;
+}
+#saved-games-list li button:hover {
+    background-color: #e0e0e0;
+    border-color: #ccc;
 }
