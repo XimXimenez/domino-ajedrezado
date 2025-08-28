@@ -336,7 +336,10 @@ function handleBoardPlacementClick(e) {
             updatePieceCount();
 
         } else {
-         console.log("Invalid placement");
+            // If placement is invalid, don't leave the player stuck.
+            // Drop the piece back where it came from.
+            console.log("Invalid placement, dropping piece.");
+            dropPiece();
         }
     }
 
@@ -454,7 +457,6 @@ function handleBoardPlacementClick(e) {
             boardSize: boardSize,
             dominoMaxNumber: dominoMaxNumber,
             pieces: piecesOnBoard,
-            dominoListHTML: dominoList.innerHTML,
             timestamp: new Date().getTime()
         };
 
@@ -543,7 +545,15 @@ function handleBoardPlacementClick(e) {
 
         generateBoard(boardSize);
 
-        dominoList.innerHTML = savedGame.dominoListHTML;
+        // Reconstruct the list of available pieces dynamically.
+        // This is more robust than saving/loading HTML.
+        generateDominoes(savedGame.dominoMaxNumber);
+        const placedPiecesValues = new Set(savedGame.pieces.map(p => p.value));
+        Array.from(dominoList.children).forEach(domino => {
+            if (placedPiecesValues.has(domino.dataset.value)) {
+                domino.remove();
+            }
+        });
 
         savedGame.pieces.forEach(piece => {
             placeSavedPieceOnBoard(piece);
