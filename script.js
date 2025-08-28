@@ -268,6 +268,39 @@ function handleBoardPlacementClick(e) {
         originPiece = null;
     }
 
+    function returnPieceToList() {
+        // 1. Clear board state
+        const oldRow = parseInt(originPiece.dataset.row);
+        const oldCol = parseInt(originPiece.dataset.col);
+        const oldIsVertical = originPiece.classList.contains('vertical');
+        boardState[oldRow][oldCol] = null;
+        if (oldIsVertical) {
+            boardState[oldRow + 1][oldCol] = null;
+        } else {
+            boardState[oldRow][oldCol + 1] = null;
+        }
+
+        // 2. Add a new piece to the domino list
+        const canonicalValue = originPiece.dataset.value;
+        const [val1, val2] = canonicalValue.split('-').map(Number);
+        const newDominoInList = createDominoElement(val1, val2);
+        dominoList.appendChild(newDominoInList);
+
+        // 3. Remove the original piece from the board DOM
+        originPiece.remove();
+
+        // 4. Generic cleanup
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('contextmenu', handleRotation);
+
+        document.body.removeChild(draggingPiece);
+
+        draggingPiece = null;
+        originPiece = null;
+
+        updatePieceCount();
+    }
+
     function handleMouseUp(e) {
         if (!draggingPiece) return;
 
@@ -336,7 +369,10 @@ function handleBoardPlacementClick(e) {
             updatePieceCount();
 
         } else {
-         console.log("Invalid placement");
+            // If placement is invalid, don't leave the player stuck.
+            // Drop the piece back where it came from.
+            console.log("Invalid placement, dropping piece.");
+            dropPiece();
         }
     }
 
@@ -454,7 +490,6 @@ function handleBoardPlacementClick(e) {
             boardSize: boardSize,
             dominoMaxNumber: dominoMaxNumber,
             pieces: piecesOnBoard,
-            dominoListHTML: dominoList.innerHTML,
             timestamp: new Date().getTime()
         };
 
@@ -543,7 +578,15 @@ function handleBoardPlacementClick(e) {
 
         generateBoard(boardSize);
 
-        dominoList.innerHTML = savedGame.dominoListHTML;
+        // Reconstruct the list of available pieces dynamically.
+        // This is more robust than saving/loading HTML.
+        generateDominoes(savedGame.dominoMaxNumber);
+        const placedPiecesValues = new Set(savedGame.pieces.map(p => p.value));
+        Array.from(dominoList.children).forEach(domino => {
+            if (placedPiecesValues.has(domino.dataset.value)) {
+                domino.remove();
+            }
+        });
 
         savedGame.pieces.forEach(piece => {
             placeSavedPieceOnBoard(piece);
@@ -589,7 +632,13 @@ function handleBoardPlacementClick(e) {
     // Drop piece if clicking on the side panel
     piecesContainer.addEventListener('click', (e) => {
         if (draggingPiece && e.target.closest('#pieces-container')) {
-            dropPiece();
+            // If the piece came from the board, return it to the list.
+            if (originPiece && originPiece.parentElement.id === 'board-container') {
+                returnPieceToList();
+            } else {
+                // Otherwise, just drop it back where it came from.
+                dropPiece();
+            }
         }
     });
 
