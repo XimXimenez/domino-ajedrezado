@@ -4,50 +4,447 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dominó Ajedrezado</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+#welcome-screen, #game-screen {
+    background: #000000;
+    border: 2px solid #ffffff;
+    padding: 60px 40px 40px;
+    width: 100%;
+    max-width: 960px;
+    position: relative;
+}
+
+#welcome-screen::before, #game-screen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: #ff3333;
+}
+
+h1 {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+#welcome-screen h1 {
+    text-align: center;
+}
+
+#welcome-screen p {
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 40px;
+    color: #cccccc;
+    letter-spacing: 0.5px;
+}
+
+.options {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.options label {
+    font-size: 14px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #999999;
+}
+
+select {
+    background: #000000;
+    color: #ffffff;
+    border: 2px solid #333333;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 120px;
+}
+
+select:hover {
+    border-color: #ff3333;
+}
+
+select:focus {
+    outline: none;
+    border-color: #ff3333;
+}
+
+button {
+    background: #ff3333;
+    color: #000000;
+    border: none;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+button:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#play-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 18px 48px;
+    font-size: 18px;
+}
+
+.game-header {
+    margin-bottom: 30px;
+}
+
+.game-header h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+#game-instructions {
+    font-size: 14px;
+    color: #999999;
+    line-height: 1.5;
+}
+
+.game-container {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+}
+
+#board-container {
+    display: grid;
+    background: #0a0a0a;
+    border: 3px solid #ffffff;
+    position: relative;
+}
+
+.board-cell {
+    width: 44px;
+    height: 44px;
+    border: 1px solid #222222;
+    background: #000000;
+    transition: background 0.1s;
+}
+
+.board-cell:hover {
+    background: #111111;
+}
+
+#pieces-container {
+    width: 380px;
+}
+
+#domino-list {
+    height: 500px;
+    overflow-y: auto;
+    border: 2px solid #333333;
+    background: #0a0a0a;
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    gap: 12px;
+}
+
+#domino-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#domino-list::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+#domino-list::-webkit-scrollbar-thumb {
+    background: #333333;
+}
+
+#domino-list::-webkit-scrollbar-thumb:hover {
+    background: #ff3333;
+}
+
+.domino {
+    width: 84px;
+    height: 42px;
+    border: 2px solid #ffffff;
+    background: #000000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.1s;
+}
+
+.domino:hover {
+    border-color: #ff3333;
+    transform: scale(1.05);
+}
+
+.domino.vertical {
+    width: 42px;
+    height: 84px;
+    flex-direction: column;
+}
+
+.domino-half {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    font-weight: 700;
+    position: relative;
+    color: #ffffff;
+}
+
+.domino-half:first-child::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: 20%;
+    bottom: 20%;
+    width: 2px;
+    background: #333333;
+}
+
+.domino.vertical .domino-half:first-child::after {
+    right: 20%;
+    left: 20%;
+    top: auto;
+    bottom: -1px;
+    width: auto;
+    height: 2px;
+}
+
+.dragging {
+    position: absolute;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0.9;
+    border-color: #ff3333;
+    border-width: 3px;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #222222;
+}
+
+.game-controls p {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.game-controls span {
+    color: #ff3333;
+    font-weight: 700;
+    font-size: 24px;
+}
+
+.game-controls button {
+    margin-left: 10px;
+}
+
+.modal {
+    position: fixed;
+    z-index: 1001;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: #000000;
+    border: 3px solid #ffffff;
+    padding: 40px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+
+.modal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: #ff3333;
+}
+
+.modal-content h2 {
+    font-size: 32px;
+    font-weight: 900;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+.modal-content p {
+    font-size: 16px;
+    margin-bottom: 30px;
+    color: #cccccc;
+}
+
+.modal-content button {
+    margin: 0 10px;
+}
+
+#saved-games-list {
+    list-style: none;
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+#saved-games-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#saved-games-list::-webkit-scrollbar-track {
+    background: #0a0a0a;
+}
+
+#saved-games-list::-webkit-scrollbar-thumb {
+    background: #333333;
+}
+
+#saved-games-list li {
+    padding: 15px;
+    border: 1px solid #222222;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.1s;
+}
+
+#saved-games-list li:hover {
+    border-color: #ff3333;
+}
+
+#saved-games-list li span {
+    flex-grow: 1;
+    margin-right: 15px;
+    color: #cccccc;
+}
+
+#saved-games-list li button {
+    padding: 8px 16px;
+    font-size: 12ng: 2px;
+    margin-left: 8px;
+}
+
+.load-game-btn {
+    background: #ff3333;
+}
+
+.delete-game-btn {
+    background: transparent;
+    color: #ff3333;
+    border: 2px solid #ff3333;
+}
+
+.delete-game-btn:hover {
+    background: #ff3333;
+    color: #000000;
+}
+    </style>
 </head>
 <body>
-
     <!-- Welcome Screen -->
     <div id="welcome-screen">
         <h1>Dominó Ajedrezado</h1>
         <p>¿Cuántas piezas de dominó podés poner en un tablero?</p>
         <div class="options">
-            <label for="board-size">Tamaño del tablero:</label>
-            <select id="board-size">
-                <!-- Options will be populated by JS -->
-            </select>
-            <label for="domino-set">Dominó que va del 0 al:</label>
-            <select id="domino-set">
-                <!-- Options will be populated by JS -->
-            </select>
+            <div>
+                <label for="board-size">Tamaño del tablero</label>
+                <select id="board-size"></select>
+            </div>
+            <div>
+                <label for="domino-set">Dominó del 0 al</label>
+                <select id="domino-set"></select>
+            </div>
         </div>
         <button id="play-btn">Jugar</button>
     </div>
 
-    <!-- Game Screen (initially hidden) -->
+    <!-- Game Screen -->
     <div id="game-screen" style="display:none;">
         <div class="game-header">
             <h1>Dominó Ajedrezado</h1>
             <p id="game-instructions"></p>
         </div>
         <div class="game-container">
-            <div id="board-container">
-                <!-- Game board will be generated here -->
-            </div>
+            <div id="board-container"></div>
             <div id="pieces-container">
-                <h2>Piezas</h2>
-                <div id="domino-list">
-                    <!-- Domino pieces will be listed here -->
-                </div>
+                <div id="domino-list"></div>
             </div>
         </div>
         <div class="game-controls">
             <p>Piezas colocadas: <span id="piece-count">0</span></p>
-            <button id="rotate-btn">Rotar</button>
-            <button id="finish-btn">Terminar</button>
-            <button id="saved-boards-btn">Tableros guardados</button>
-            <button id="new-game-btn">Empezar de nuevo</button>
+            <div>
+                <button id="rotate-btn">Rotar</button>
+                <button id="finish-btn">Terminar</button>
+                <button id="saved-boards-btn">Guardados</button>
+                <button id="new-game-btn">Nuevo</button>
+            </div>
         </div>
     </div>
 
@@ -65,13 +462,647 @@
     <div id="saved-boards-modal" class="modal" style="display:none;">
         <div class="modal-content">
             <h2>Tableros Guardados</h2>
-            <ul id="saved-games-list">
-                <!-- Saved games will be listed here -->
-            </ul>
+            <ul id="saved-games-list"></ul>
             <button id="continue-playing-btn">Seguir</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- DOM Elements ---
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const boardSizeSelect = document.getElementById('board-size');
+    const dominoSetSelect = document.getElementById('domino-set');
+    const playBtn = document.getElementById('play-btn');
+    const gameInstructions = document.getElementById('game-instructions');
+    const boardContainer = document.getElementById('board-container');
+    const dominoList = document.getElementById('domino-list');
+    const pieceCountSpan = document.getElementById('piece-count');
+    const newGameBtn = document.getElementById('new-game-btn');
+
+    // --- Game State ---
+    let boardSize = 8;
+    let dominoMaxNumber = 6;
+    let draggingPiece = null;
+    let isVertical = false;
+    let rotation = 0;
+    let originPiece = null;
+    let boardState = [];
+
+    // --- DOM Elements ---
+    const rotateBtn = document.getElementById('rotate-btn');
+    const piecesContainer = document.getElementById('pieces-container');
+    const finishBtn = document.getElementById('finish-btn');
+    const savedBoardsBtn = document.getElementById('saved-boards-btn');
+
+    // Finish Modal Elements
+    const finishModal = document.getElementById('finish-modal');
+    const finishSummary = document.getElementById('finish-summary');
+    const saveBtn = document.getElementById('save-btn');
+    const continueBtn = document.getElementById('continue-btn');
+
+    // Saved Boards Modal Elements
+    const savedBoardsModal = document.getElementById('saved-boards-modal');
+    const savedGamesList = document.getElementById('saved-games-list');
+    const continuePlayingBtn = document.getElementById('continue-playing-btn');
+
+    // --- Welcome Screen Logic ---
+    function populateSelectors() {
+        for (let i = 5; i <= 12; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `${i}x${i}`;
+            if (i === 8) option.selected = true;
+            boardSizeSelect.appendChild(option);
+        }
+
+        for (let i = 3; i <= 9; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            if (i === 6) option.selected = true;
+            dominoSetSelect.appendChild(option);
+        }
+    }
+
+    // --- Game Setup ---
+    function startGame() {
+        boardSize = parseInt(boardSizeSelect.value);
+        dominoMaxNumber = parseInt(dominoSetSelect.value);
+
+        boardState = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+
+        gameInstructions.textContent = `¿Cuántas piezas del dominó que va del 0 al ${dominoMaxNumber} podés poner en este tablero? Elegí una pieza y ponela en el tablero con un click. Las piezas se pueden rotar con el botón derecho.`;
+
+        welcomeScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+
+        generateBoard(boardSize);
+        generateDominoes(dominoMaxNumber);
+
+        pieceCountSpan.textContent = '0';
+    }
+
+    function generateBoard(size) {
+        boardContainer.innerHTML = '';
+        boardContainer.style.gridTemplateColumns = `repeat(${size}, 44px)`;
+        boardContainer.style.gridTemplateRows = `repeat(${size}, 44px)`;
+        boardContainer.style.position = 'relative';
+
+        for (let i = 0; i < size * size; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('board-cell');
+            cell.dataset.row = Math.floor(i / size);
+            cell.dataset.col = i % size;
+            boardContainer.appendChild(cell);
+        }
+    }
+
+    function generateDominoes(maxNumber) {
+        dominoList.innerHTML = '';
+        for (let i = 0; i <= maxNumber; i++) {
+            for (let j = i; j <= maxNumber; j++) {
+                const domino = createDominoElement(i, j);
+                dominoList.appendChild(domino);
+            }
+        }
+    }
+
+    function createDominoElement(val1, val2) {
+        const domino = document.createElement('div');
+        domino.classList.add('domino');
+        domino.dataset.value = `${val1}-${val2}`;
+
+        const half1 = document.createElement('div');
+        half1.classList.add('domino-half');
+        half1.textContent = val1;
+
+        const half2 = document.createElement('div');
+        half2.classList.add('domino-half');
+        half2.textContent = val2;
+
+        domino.appendChild(half1);
+        domino.appendChild(half2);
+        return domino;
+    }
+
+    // --- Piece Interaction Logic ---
+    function handlePiecePickup(e) {
+        if (draggingPiece) return;
+
+        const targetDomino = e.target.closest('.domino');
+        if (targetDomino) {
+            e.stopPropagation();
+
+            originPiece = targetDomino;
+
+            draggingPiece = originPiece.cloneNode(true);
+            rotation = parseInt(originPiece.dataset.rotation || '0', 10);
+            isVertical = draggingPiece.classList.contains('vertical');
+
+            draggingPiece.classList.add('dragging');
+            document.body.appendChild(draggingPiece);
+
+            movePiece(e.pageX, e.pageY);
+
+            originPiece.style.visibility = 'hidden';
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('contextmenu', handleRotation);
+        }
+    }
+
+    function handleBoardPlacementClick(e) {
+        if (!draggingPiece) return;
+
+        const boardRect = boardContainer.getBoundingClientRect();
+        const x = e.clientX - boardRect.left - 22;
+        const y = e.clientY - boardRect.top - 22;
+
+        const col = Math.floor(x / 44);
+        const row = Math.floor(y / 44);
+
+        if (row >= 0 && row < boardSize && col >= 0 && col < boardSize) {
+            const cellSelector = `.board-cell[data-row='${row}'][data-col='${col}']`;
+            const boardCell = boardContainer.querySelector(cellSelector);
+
+            if (boardCell) {
+                handleBoardClick(boardCell);
+            }
+        }
+    }
+
+    function handleMouseMove(e) {
+        if (draggingPiece) {
+            movePiece(e.pageX, e.pageY);
+        }
+    }
+
+    function movePiece(x, y) {
+        if (!draggingPiece) return;
+        const offsetX = draggingPiece.offsetWidth / 2;
+        const offsetY = draggingPiece.offsetHeight / 2;
+        draggingPiece.style.left = `${x - offsetX}px`;
+        draggingPiece.style.top = `${y - offsetY}px`;
+    }
+
+    function updateDraggingPieceVisuals() {
+        if (!draggingPiece) return;
+
+        const originalValues = originPiece.dataset.value.split('-').map(Number);
+        const halves = draggingPiece.querySelectorAll('.domino-half');
+        let v1, v2;
+
+        switch (rotation) {
+            case 0:
+                v1 = originalValues[0];
+                v2 = originalValues[1];
+                draggingPiece.classList.remove('vertical');
+                isVertical = false;
+                break;
+            case 1:
+                v1 = originalValues[0];
+                v2 = originalValues[1];
+                draggingPiece.classList.add('vertical');
+                isVertical = true;
+                break;
+            case 2:
+                v1 = originalValues[1];
+                v2 = originalValues[0];
+                draggingPiece.classList.remove('vertical');
+                isVertical = false;
+                break;
+            case 3:
+                v1 = originalValues[1];
+                v2 = originalValues[0];
+                draggingPiece.classList.add('vertical');
+                isVertical = true;
+                break;
+        }
+
+        halves[0].textContent = v1;
+        halves[1].textContent = v2;
+        draggingPiece.dataset.value = `${v1}-${v2}`;
+    }
+
+    function handleRotation(e) {
+        if (draggingPiece) {
+            e.preventDefault();
+            rotation = (rotation + 1) % 4;
+
+            updateDraggingPieceVisuals();
+
+            movePiece(e.pageX, e.pageY);
+        }
+    }
+
+    function dropPiece() {
+        if (!draggingPiece) return;
+
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('contextmenu', handleRotation);
+
+        document.body.removeChild(draggingPiece);
+        if (originPiece) {
+            originPiece.style.visibility = 'visible';
+        }
+
+        draggingPiece = null;
+        originPiece = null;
+    }
+
+    function returnPieceToList() {
+        const oldRow = parseInt(originPiece.dataset.row);
+        const oldCol = parseInt(originPiece.dataset.col);
+        const oldIsVertical = originPiece.classList.contains('vertical');
+        boardState[oldRow][oldCol] = null;
+        if (oldIsVertical) {
+            boardState[oldRow + 1][oldCol] = null;
+        } else {
+            boardState[oldRow][oldCol + 1] = null;
+        }
+
+        const canonicalValue = originPiece.dataset.value;
+        const [val1, val2] = canonicalValue.split('-').map(Number);
+        const newDominoInList = createDominoElement(val1, val2);
+        dominoList.appendChild(newDominoInList);
+
+        originPiece.remove();
+
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('contextmenu', handleRotation);
+
+        document.body.removeChild(draggingPiece);
+        
+        draggingPiece = null;
+        originPiece = null;
+
+        updatePieceCount();
+    }
+
+    function handleMouseUp(e) {
+        if (!draggingPiece) return;
+
+        const boardCell = e.target.closest('.board-cell');
+        if (boardCell) {
+            handleBoardClick(boardCell);
+        } else {
+            dropPiece();
+        }
+    }
+
+    function handleBoardClick(cell) {
+        if (!draggingPiece) return;
+
+        const row = parseInt(cell.dataset.row);
+        const col = parseInt(cell.dataset.col);
+        const values = draggingPiece.dataset.value.split('-').map(Number);
+
+        let row2 = row;
+        let col2 = col;
+        if (isVertical) {
+            row2 += 1;
+        } else {
+            col2 += 1;
+        }
+
+        if (originPiece.parentElement.id === 'board-container') {
+            const oldRow = parseInt(originPiece.dataset.row);
+            const oldCol = parseInt(originPiece.dataset.col);
+            const oldIsVertical = originPiece.classList.contains('vertical');
+            boardState[oldRow][oldCol] = null;
+            if (oldIsVertical) boardState[oldRow + 1][oldCol] = null;
+            else boardState[oldRow][oldCol + 1] = null;
+        }
+
+        const canPlace = isValidPlacement(values[0], row, col, values[1], row2, col2);
+
+        if (!canPlace && originPiece.parentElement.id === 'board-container') {
+            const oldRow = parseInt(originPiece.dataset.row);
+            const oldCol = parseInt(originPiece.dataset.col);
+            const oldIsVertical = originPiece.classList.contains('vertical');
+            const oldValues = originPiece.dataset.value.split('-').map(Number);
+            boardState[oldRow][oldCol] = { value: oldValues[0], pieceId: originPiece.dataset.value };
+            if (oldIsVertical) boardState[oldRow + 1][oldCol] = { value: oldValues[1], pieceId: originPiece.dataset.value };
+            else boardState[oldRow][oldCol + 1] = { value: oldValues[1], pieceId: originPiece.dataset.value };
+
+            console.log("Invalid placement, state restored.");
+            return;
+        }
+
+        if (canPlace) {
+            placePieceOnBoard(values, row, col, isVertical);
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('contextmenu', handleRotation);
+
+            document.body.removeChild(draggingPiece);
+            originPiece.remove();
+            draggingPiece = null;
+            originPiece = null;
+            updatePieceCount();
+
+        } else {
+            console.log("Invalid placement, dropping piece.");
+            dropPiece();
+        }
+    }
+
+    function isValidPlacement(val1, r1, c1, val2, r2, c2) {
+        if (r1 < 0 || r1 >= boardSize || c1 < 0 || c1 >= boardSize ||
+            r2 < 0 || r2 >= boardSize || c2 < 0 || c2 >= boardSize) {
+            return false;
+        }
+
+        if (boardState[r1][c1] !== null || boardState[r2][c2] !== null) {
+            return false;
+        }
+
+        const placedPiecesCount = document.querySelectorAll('#board-container .domino').length;
+        if (placedPiecesCount === 0) {
+            if (originPiece && originPiece.parentElement.id === 'domino-list') {
+                return true;
+            }
+        }
+
+        const checkNeighbors = (val, r, c) => {
+            const neighbors = [[r-1, c], [r+1, c], [r, c-1], [r, c+1]];
+            let hasNeighbor = false;
+            let goodMatch = true;
+            for (const [nr, nc] of neighbors) {
+                if ((nr === r1 && nc === c1) || (nr === r2 && nc === c2)) continue;
+
+                if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize && boardState[nr][nc] !== null) {
+                   hasNeighbor = true;
+                   if (boardState[nr][nc].value !== val) {
+                       goodMatch = false;
+                   }
+                }
+            }
+            return !hasNeighbor || goodMatch;
+        };
+
+        const isAdjacentToExistingPiece = () => {
+            const allNeighbors = [
+                [r1 - 1, c1], [r1 + 1, c1], [r1, c1 - 1], [r1, c1 + 1],
+                [r2 - 1, c2], [r2 + 1, c2], [r2, c2 - 1], [r2, c2 + 1]
+            ];
+            for (const [nr, nc] of allNeighbors) {
+                if ((nr === r1 && nc === c1) || (nr === r2 && nc === c2)) continue;
+                if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize && boardState[nr][nc] !== null) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        if (placedPiecesCount > 0 && !isAdjacentToExistingPiece()) {
+            return false;
+        }
+
+        return checkNeighbors(val1, r1, c1) && checkNeighbors(val2, r2, c2);
+    }
+
+    function placePieceOnBoard(values, row, col, isVertical) {
+        const pieceId = originPiece.dataset.value;
+        boardState[row][col] = { value: values[0], pieceId: pieceId };
+        if (isVertical) {
+            boardState[row + 1][col] = { value: values[1], pieceId: pieceId };
+        } else {
+            boardState[row][col + 1] = { value: values[1], pieceId: pieceId };
+        }
+
+        const dominoOnBoard = createDominoElement(values[0], values[1]);
+        dominoOnBoard.dataset.value = originPiece.dataset.value;
+        dominoOnBoard.dataset.rotation = rotation;
+        dominoOnBoard.style.position = 'absolute';
+        dominoOnBoard.style.top = `${row * 44}px`;
+        dominoOnBoard.style.left = `${col * 44}px`;
+        dominoOnBoard.dataset.row = row;
+        dominoOnBoard.dataset.col = col;
+
+        if (isVertical) {
+            dominoOnBoard.classList.add('vertical');
+        }
+
+        boardContainer.appendChild(dominoOnBoard);
+    }
+
+    function updatePieceCount() {
+        const placedPieces = document.querySelectorAll('#board-container .domino').length;
+        pieceCountSpan.textContent = placedPieces;
+    }
+
+    // --- Game Control and Modal Logic ---
+    function saveGame() {
+        const piecesOnBoard = [];
+        document.querySelectorAll('#board-container .domino').forEach(p => {
+            piecesOnBoard.push({
+                value: p.dataset.value,
+                row: parseInt(p.dataset.row),
+                col: parseInt(p.dataset.col),
+                isVertical: p.classList.contains('vertical'),
+                rotation: p.dataset.rotation || '0'
+            });
+        });
+
+        const gameState = {
+            boardSize: boardSize,
+            dominoMaxNumber: dominoMaxNumber,
+            pieces: piecesOnBoard,
+            timestamp: new Date().getTime()
+        };
+
+        const savedGames = JSON.parse(localStorage.getItem('dominoSavedGames')) || [];
+        savedGames.push(gameState);
+        localStorage.setItem('dominoSavedGames', JSON.stringify(savedGames));
+        alert('¡Partida guardada!');
+        finishModal.style.display = 'none';
+    }
+
+    function loadAndDisplaySavedGames() {
+        savedGamesList.innerHTML = '';
+        const savedGames = JSON.parse(localStorage.getItem('dominoSavedGames')) || [];
+
+        if (savedGames.length === 0) {
+            savedGamesList.innerHTML = '<li>No hay partidas guardadas.</li>';
+            return;
+        }
+
+        savedGames.forEach((game, index) => {
+            const li = document.createElement('li');
+
+            const textSpan = document.createElement('span');
+            const date = new Date(game.timestamp).toLocaleString('es-ES');
+            textSpan.textContent = `${date} - ${game.pieces.length} piezas (${game.boardSize}x${game.boardSize})`;
+
+            const loadButton = document.createElement('button');
+            loadButton.textContent = 'Cargar';
+            loadButton.dataset.gameIndex = index;
+            loadButton.classList.add('load-game-btn');
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Borrar';
+            deleteButton.dataset.gameIndex = index;
+            deleteButton.classList.add('delete-game-btn');
+
+            li.appendChild(textSpan);
+            li.appendChild(loadButton);
+            li.appendChild(deleteButton);
+            savedGamesList.appendChild(li);
+        });
+    }
+
+    function placeSavedPieceOnBoard(pieceData) {
+        const { value, row, col, isVertical, rotation } = pieceData;
+        const canonicalValues = value.split('-').map(Number);
+        let displayedValues = [...canonicalValues];
+
+        if (rotation === '2' || rotation === '3') {
+            displayedValues = [canonicalValues[1], canonicalValues[0]];
+        }
+
+        boardState[row][col] = { value: displayedValues[0], pieceId: value };
+        if (isVertical) {
+            boardState[row + 1][col] = { value: displayedValues[1], pieceId: value };
+        } else {
+            boardState[row][col + 1] = { value: displayedValues[1], pieceId: value };
+        }
+
+        const dominoOnBoard = createDominoElement(displayedValues[0], displayedValues[1]);
+        dominoOnBoard.dataset.value = value;
+        dominoOnBoard.dataset.rotation = rotation;
+        dominoOnBoard.style.position = 'absolute';
+        dominoOnBoard.style.top = `${row * 44}px`;
+        dominoOnBoard.style.left = `${col * 44}px`;
+        dominoOnBoard.dataset.row = row;
+        dominoOnBoard.dataset.col = col;
+
+        if (isVertical) {
+            dominoOnBoard.classList.add('vertical');
+        }
+        boardContainer.appendChild(dominoOnBoard);
+    }
+
+    function loadGame(savedGame) {
+        boardSize = savedGame.boardSize;
+        dominoMaxNumber = savedGame.dominoMaxNumber;
+        boardSizeSelect.value = boardSize;
+        dominoSetSelect.value = dominoMaxNumber;
+
+        boardState = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null));
+        gameInstructions.textContent = `¿Cuántas piezas del dominó que va del 0 al ${dominoMaxNumber} podés poner en este tablero? Elegí una pieza y ponela en el tablero con un click. Las piezas se pueden rotar con el botón derecho.`;
+
+        welcomeScreen.style.display = 'none';
+        gameScreen.style.display = 'block';
+
+        generateBoard(boardSize);
+
+        generateDominoes(savedGame.dominoMaxNumber);
+        const placedPiecesValues = new Set(savedGame.pieces.map(p => p.value));
+        Array.from(dominoList.children).forEach(domino => {
+            if (placedPiecesValues.has(domino.dataset.value)) {
+                domino.remove();
+            }
+        });
+
+        savedGame.pieces.forEach(piece => {
+            placeSavedPieceOnBoard(piece);
+        });
+
+        updatePieceCount();
+    }
+
+    // --- Event Listeners ---
+    playBtn.addEventListener('click', startGame);
+
+    newGameBtn.addEventListener('click', () => {
+        gameScreen.style.display = 'none';
+        welcomeScreen.style.display = 'block';
+    });
+
+    dominoList.addEventListener('click', handlePiecePickup);
+    boardContainer.addEventListener('click', (e) => {
+        if (draggingPiece) {
+            handleBoardPlacementClick(e);
+        } else {
+            const targetDomino = e.target.closest('.domino');
+            if (targetDomino) {
+                handlePiecePickup(e);
+            }
+        }
+    });
+
+    rotateBtn.addEventListener('click', (e) => {
+        if(draggingPiece) {
+           const mockEvent = {
+               preventDefault: () => {},
+               pageX: parseInt(draggingPiece.style.left || 0, 10),
+               pageY: parseInt(draggingPiece.style.top || 0, 10)
+           };
+           handleRotation(mockEvent);
+        }
+    });
+
+    piecesContainer.addEventListener('click', (e) => {
+        if (draggingPiece && e.target.closest('#pieces-container')) {
+            if (originPiece && originPiece.parentElement.id === 'board-container') {
+                returnPieceToList();
+            } else {
+                dropPiece();
+            }
+        }
+    });
+
+    finishBtn.addEventListener('click', () => {
+        const pieceCount = document.querySelectorAll('#board-container .domino').length;
+        finishSummary.textContent = `Piezas colocadas: ${pieceCount}, Dominó: 0 al ${dominoMaxNumber}, Tablero: ${boardSize}x${boardSize}`;
+        finishModal.style.display = 'flex';
+    });
+
+    continueBtn.addEventListener('click', () => {
+        finishModal.style.display = 'none';
+    });
+
+    saveBtn.addEventListener('click', saveGame);
+
+    savedBoardsBtn.addEventListener('click', () => {
+        loadAndDisplaySavedGames();
+        savedBoardsModal.style.display = 'flex';
+    });
+
+    continuePlayingBtn.addEventListener('click', () => {
+        savedBoardsModal.style.display = 'none';
+    });
+
+    savedGamesList.addEventListener('click', (e) => {
+        const target = e.target;
+        const gameIndex = target.dataset.gameIndex;
+
+        if (gameIndex === undefined) return;
+
+        let savedGames = JSON.parse(localStorage.getItem('dominoSavedGames'));
+
+        if (target.classList.contains('load-game-btn')) {
+            const gameToLoad = savedGames[gameIndex];
+            if (gameToLoad) {
+                loadGame(gameToLoad);
+                savedBoardsModal.style.display = 'none';
+            }
+        }
+
+        if (target.classList.contains('delete-game-btn')) {
+            savedGames.splice(gameIndex, 1);
+            localStorage.setItem('dominoSavedGames', JSON.stringify(savedGames));
+            loadAndDisplaySavedGames();
+        }
+    });
+
+    // --- Initial Setup ---
+    populateSelectors();
+});
+    </script>
 </body>
 </html>
